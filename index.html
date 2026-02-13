@@ -453,12 +453,13 @@
             const card = document.getElementById('mainCard');
             const rect = card.getBoundingClientRect();
 
-            // Define a zone around the card where the button can hop
-            const zonePad = 150; // how far outside the card it can go
-            const zoneLeft = Math.max(10, rect.left - zonePad);
-            const zoneTop = Math.max(10, rect.top - 100);
-            const zoneRight = Math.min(window.innerWidth - btnWidth - 10, rect.right + zonePad);
-            const zoneBottom = Math.min(window.innerHeight - btnHeight - 10, rect.bottom + 100);
+            // Tight zone around the card — button hops nearby
+            const padX = 80;
+            const padY = 80;
+            const zoneLeft = Math.max(10, rect.left - padX);
+            const zoneTop = Math.max(10, rect.top - padY);
+            const zoneRight = Math.min(window.innerWidth - btnWidth - 10, rect.right + padX);
+            const zoneBottom = Math.min(window.innerHeight - btnHeight - 10, rect.bottom + padY);
 
             for (let i = 0; i < TOTAL_ESCAPE_POSITIONS; i++) {
                 escapePositions.push({
@@ -474,7 +475,8 @@
             positionIndex = 0;
         }
 
-        generateEscapePositions();
+        // Don't generate at page load — wait until first hover
+        // so the card entrance animation has finished
 
         function escapeNoButton() {
             escapeCount++;
@@ -484,8 +486,8 @@
                 btnNo.classList.add('escaped');
             }
 
-            // If we've gone through all positions, re-generate
-            if (positionIndex >= escapePositions.length) {
+            // Generate positions on first escape or when all used up
+            if (escapePositions.length === 0 || positionIndex >= escapePositions.length) {
                 generateEscapePositions();
             }
 
@@ -508,8 +510,8 @@
             escapeNoButton();
         });
 
-        // Regenerate positions on window resize
-        window.addEventListener('resize', generateEscapePositions);
+        // Clear positions on resize so they regenerate with correct bounds next hover
+        window.addEventListener('resize', () => { escapePositions = []; positionIndex = 0; });
 
         // ============================================================
         // YES BUTTON — SHOW VIDEO WITH CONFETTI
