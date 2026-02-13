@@ -462,26 +462,25 @@
             const yesCenterX = yesRect.left + yesRect.width / 2;
             const yesCenterY = yesRect.top + yesRect.height / 2;
 
-            // Calculate valid ranges relative to Yes button center
-            const minX = yesCenterX - buffer - btnRect.width / 2;
-            const maxX = yesCenterX + buffer - btnRect.width / 2;
+            // 3. Calculate IDEAL random position around Yes button
+            //    We start by picking a random offset within the buffer
+            const offsetX = (Math.random() - 0.5) * 2 * buffer;
+            const offsetY = (Math.random() - 0.5) * 2 * buffer;
 
-            const minY = yesCenterY - buffer - btnRect.height / 2;
-            const maxY = yesCenterY + buffer - btnRect.height / 2;
+            let targetX = yesCenterX + offsetX - btnRect.width / 2;
+            let targetY = yesCenterY + offsetY - btnRect.height / 2;
 
-            // Randomly clamp within these bounds BUT also within viewport
+            // 4. HARD CLAMP to Viewport
+            //    It MUST stay within [20, max - 20]
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            const safeMinX = Math.max(20, minX);
-            const safeMaxX = Math.min(viewportWidth - btnRect.width - 20, maxX);
+            const maxAllowedX = viewportWidth - btnRect.width - 20;
+            const maxAllowedY = viewportHeight - btnRect.height - 20;
 
-            const safeMinY = Math.max(20, minY);
-            const safeMaxY = Math.min(viewportHeight - btnRect.height - 20, maxY);
-
-            // Generate random position within safety bounds
-            const randomX = safeMinX + Math.random() * (safeMaxX - safeMinX);
-            const randomY = safeMinY + Math.random() * (safeMaxY - safeMinY);
+            // Apply clamps
+            const randomX = Math.max(20, Math.min(maxAllowedX, targetX));
+            const randomY = Math.max(20, Math.min(maxAllowedY, targetY));
 
             btnNo.style.left = randomX + 'px';
             btnNo.style.top = randomY + 'px';
