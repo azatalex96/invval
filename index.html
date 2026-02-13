@@ -234,6 +234,8 @@
                 0 4px 15px rgba(255, 51, 102, 0.4),
                 0 0 30px rgba(255, 51, 102, 0.1);
             animation: shimmer 3s ease-in-out infinite;
+            transform: scale(var(--btn-scale, 1));
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         @keyframes shimmer {
@@ -249,14 +251,14 @@
         }
 
         .btn-yes:hover {
-            transform: scale(1.08);
+            transform: scale(calc(var(--btn-scale, 1) * 1.08));
             box-shadow:
                 0 6px 25px rgba(255, 51, 102, 0.5),
                 0 0 50px rgba(255, 51, 102, 0.2);
         }
 
         .btn-yes:active {
-            transform: scale(0.98);
+            transform: scale(calc(var(--btn-scale, 1) * 0.98));
         }
 
         .btn-no {
@@ -438,69 +440,55 @@
         // NO BUTTON — RUNS AWAY ON HOVER
         // ============================================================
         const btnNo = document.getElementById('btnNo');
+        const btnYes = document.getElementById('btnYes');
         let escapeCount = 0;
-
-        // Pre-generate 10+ random positions so it doesn't repeat until
-        // all have been visited. Positions stay within the viewport.
-        const TOTAL_ESCAPE_POSITIONS = 14;
-        let escapePositions = [];
-        let positionIndex = 0;
-
-        function generateEscapePositions() {
-            escapePositions = [];
-            const btnWidth = 120;
-            const btnHeight = 50;
-            const card = document.getElementById('mainCard');
-            const rect = card.getBoundingClientRect();
-
-            // Tight zone around the card — button hops nearby
-            const padX = 80;
-            const padY = 80;
-            const zoneLeft = Math.max(10, rect.left - padX);
-            const zoneTop = Math.max(10, rect.top - padY);
-            const zoneRight = Math.min(window.innerWidth - btnWidth - 10, rect.right + padX);
-            const zoneBottom = Math.min(window.innerHeight - btnHeight - 10, rect.bottom + padY);
-
-            for (let i = 0; i < TOTAL_ESCAPE_POSITIONS; i++) {
-                escapePositions.push({
-                    x: zoneLeft + Math.random() * (zoneRight - zoneLeft),
-                    y: zoneTop + Math.random() * (zoneBottom - zoneTop),
-                });
-            }
-            // Shuffle using Fisher-Yates
-            for (let i = escapePositions.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [escapePositions[i], escapePositions[j]] = [escapePositions[j], escapePositions[i]];
-            }
-            positionIndex = 0;
-        }
-
-        // Don't generate at page load — wait until first hover
-        // so the card entrance animation has finished
 
         function escapeNoButton() {
             escapeCount++;
 
-            // Switch to fixed positioning on first escape
+            // 1. Add class to make it fixed/absolute if not already
             if (!btnNo.classList.contains('escaped')) {
                 btnNo.classList.add('escaped');
             }
 
-            // Generate positions on first escape or when all used up
-            if (escapePositions.length === 0 || positionIndex >= escapePositions.length) {
-                generateEscapePositions();
-            }
+            // 2. Get Yes button dimensions to keep No button nearby
+            const yesRect = btnYes.getBoundingClientRect();
+            const btnRect = btnNo.getBoundingClientRect();
 
-            const pos = escapePositions[positionIndex];
-            positionIndex++;
+            // Define a "buffer" around the Yes button
+            // e.g., radius/box around the center of Yes button
+            const buffer = 100; // tighter buffer for "hovering" feel
 
-            btnNo.style.left = pos.x + 'px';
-            btnNo.style.top = pos.y + 'px';
+            const yesCenterX = yesRect.left + yesRect.width / 2;
+            const yesCenterY = yesRect.top + yesRect.height / 2;
 
-            // Make the Yes button grow slightly each time as a fun hint
-            const yesBtn = document.getElementById('btnYes');
-            const scaleAmount = Math.min(1 + escapeCount * 0.04, 1.5);
-            yesBtn.style.transform = `scale(${scaleAmount})`;
+            // Calculate valid ranges relative to Yes button center
+            const minX = yesCenterX - buffer - btnRect.width / 2;
+            const maxX = yesCenterX + buffer - btnRect.width / 2;
+
+            const minY = yesCenterY - buffer - btnRect.height / 2;
+            const maxY = yesCenterY + buffer - btnRect.height / 2;
+
+            // Randomly clamp within these bounds BUT also within viewport
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            const safeMinX = Math.max(20, minX);
+            const safeMaxX = Math.min(viewportWidth - btnRect.width - 20, maxX);
+
+            const safeMinY = Math.max(20, minY);
+            const safeMaxY = Math.min(viewportHeight - btnRect.height - 20, maxY);
+
+            // Generate random position within safety bounds
+            const randomX = safeMinX + Math.random() * (safeMaxX - safeMinX);
+            const randomY = safeMinY + Math.random() * (safeMaxY - safeMinY);
+
+            btnNo.style.left = randomX + 'px';
+            btnNo.style.top = randomY + 'px';
+
+            // Make the Yes button grow 8% bigger each hop
+            const scaleAmount = 1 + escapeCount * 0.08;
+            btnYes.style.setProperty('--btn-scale', scaleAmount);
         }
 
         // Use both mouseenter and touchstart for mobile
@@ -509,9 +497,6 @@
             e.preventDefault();
             escapeNoButton();
         });
-
-        // Clear positions on resize so they regenerate with correct bounds next hover
-        window.addEventListener('resize', () => { escapePositions = []; positionIndex = 0; });
 
         // ============================================================
         // YES BUTTON — SHOW VIDEO WITH CONFETTI
