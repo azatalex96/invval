@@ -441,6 +441,7 @@
         // ============================================================
         const btnNo = document.getElementById('btnNo');
         const btnYes = document.getElementById('btnYes');
+        const mainCard = document.getElementById('mainCard');
         let escapeCount = 0;
 
         function escapeNoButton() {
@@ -451,49 +452,36 @@
                 btnNo.classList.add('escaped');
             }
 
-            // 2. Get Yes button dimensions to keep No button nearby
-            const yesRect = btnYes.getBoundingClientRect();
+            // 2. Logic ported from "valentine_fixed.html"
+            // Get dimensions
+            const cardRect = mainCard.getBoundingClientRect();
             const btnRect = btnNo.getBoundingClientRect();
+            const yesRect = btnYes.getBoundingClientRect();
 
-            // Define a "buffer" around the Yes button
-            // e.g., radius/box around the center of Yes button
-            const buffer = 100; // tighter buffer for "hovering" feel
+            // Define buffer around Yes button
+            const buffer = 120; // from reference file
 
             const yesCenterX = yesRect.left + yesRect.width / 2;
             const yesCenterY = yesRect.top + yesRect.height / 2;
 
-            // 3. Calculate IDEAL random position around Yes button
-            //    We start by picking a random offset within the buffer
+            // Calculate random offset within buffer
             const offsetX = (Math.random() - 0.5) * 2 * buffer;
             const offsetY = (Math.random() - 0.5) * 2 * buffer;
 
             let targetX = yesCenterX + offsetX - btnRect.width / 2;
             let targetY = yesCenterY + offsetY - btnRect.height / 2;
 
-            // 4. SMART CLAMP (Zoom-aware)
-            //    Use visualViewport API if available to handle mobile zoom (200% etc.)
-            //    Fall back to window.inner* if not supported.
-            const vv = window.visualViewport;
-            const viewportWidth = vv ? vv.width : window.innerWidth;
-            const viewportHeight = vv ? vv.height : window.innerHeight;
-            const viewportLeft = vv ? vv.offsetLeft : 0;
-            const viewportTop = vv ? vv.offsetTop : 0;
+            // 3. CLAMP TO CARD BOUNDARIES (Stay inside card)
+            const padding = 20; // from reference file
 
-            // Clamping rules:
-            // Must be visible within the CURRENT visual viewport.
-            // Min = Viewport Offset + 10px padding
-            // Max = Viewport Offset + Viewport Width - Button Width - 10px padding
-            const minAllowedX = viewportLeft + 10;
-            const maxAllowedX = viewportLeft + viewportWidth - btnRect.width - 10;
-
-            const minAllowedY = viewportTop + 10;
-            const maxAllowedY = viewportTop + viewportHeight - btnRect.height - 10;
+            const minX = cardRect.left + padding;
+            const maxX = cardRect.right - btnRect.width - padding;
+            const minY = cardRect.top + padding;
+            const maxY = cardRect.bottom - btnRect.height - padding;
 
             // Apply clamps
-            // We use Math.max(min, Math.min(max, target))
-            // But if max < min (e.g. extremely zoomed in), prioritize keeping the top-left visible
-            const clampedX = Math.max(minAllowedX, Math.min(maxAllowedX, targetX));
-            const clampedY = Math.max(minAllowedY, Math.min(maxAllowedY, targetY));
+            const clampedX = Math.max(minX, Math.min(maxX, targetX));
+            const clampedY = Math.max(minY, Math.min(maxY, targetY));
 
             btnNo.style.left = clampedX + 'px';
             btnNo.style.top = clampedY + 'px';
