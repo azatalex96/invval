@@ -450,13 +450,20 @@
             escapePositions = [];
             const btnWidth = 120;
             const btnHeight = 50;
-            const pad = 20; // px padding from viewport edges
-            const maxX = window.innerWidth - btnWidth - pad;
-            const maxY = window.innerHeight - btnHeight - pad;
+            const card = document.getElementById('mainCard');
+            const rect = card.getBoundingClientRect();
+
+            // Define a zone around the card where the button can hop
+            const zonePad = 150; // how far outside the card it can go
+            const zoneLeft = Math.max(10, rect.left - zonePad);
+            const zoneTop = Math.max(10, rect.top - 100);
+            const zoneRight = Math.min(window.innerWidth - btnWidth - 10, rect.right + zonePad);
+            const zoneBottom = Math.min(window.innerHeight - btnHeight - 10, rect.bottom + 100);
+
             for (let i = 0; i < TOTAL_ESCAPE_POSITIONS; i++) {
                 escapePositions.push({
-                    x: Math.max(pad, Math.min(maxX, pad + Math.random() * (maxX - pad))),
-                    y: Math.max(pad, Math.min(maxY, pad + Math.random() * (maxY - pad))),
+                    x: zoneLeft + Math.random() * (zoneRight - zoneLeft),
+                    y: zoneTop + Math.random() * (zoneBottom - zoneTop),
                 });
             }
             // Shuffle using Fisher-Yates
