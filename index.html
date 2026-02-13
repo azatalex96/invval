@@ -470,20 +470,33 @@
             let targetX = yesCenterX + offsetX - btnRect.width / 2;
             let targetY = yesCenterY + offsetY - btnRect.height / 2;
 
-            // 4. HARD CLAMP to Viewport
-            //    It MUST stay within [20, max - 20]
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
+            // 4. SMART CLAMP (Zoom-aware)
+            //    Use visualViewport API if available to handle mobile zoom (200% etc.)
+            //    Fall back to window.inner* if not supported.
+            const vv = window.visualViewport;
+            const viewportWidth = vv ? vv.width : window.innerWidth;
+            const viewportHeight = vv ? vv.height : window.innerHeight;
+            const viewportLeft = vv ? vv.offsetLeft : 0;
+            const viewportTop = vv ? vv.offsetTop : 0;
 
-            const maxAllowedX = viewportWidth - btnRect.width - 20;
-            const maxAllowedY = viewportHeight - btnRect.height - 20;
+            // Clamping rules:
+            // Must be visible within the CURRENT visual viewport.
+            // Min = Viewport Offset + 10px padding
+            // Max = Viewport Offset + Viewport Width - Button Width - 10px padding
+            const minAllowedX = viewportLeft + 10;
+            const maxAllowedX = viewportLeft + viewportWidth - btnRect.width - 10;
+
+            const minAllowedY = viewportTop + 10;
+            const maxAllowedY = viewportTop + viewportHeight - btnRect.height - 10;
 
             // Apply clamps
-            const randomX = Math.max(20, Math.min(maxAllowedX, targetX));
-            const randomY = Math.max(20, Math.min(maxAllowedY, targetY));
+            // We use Math.max(min, Math.min(max, target))
+            // But if max < min (e.g. extremely zoomed in), prioritize keeping the top-left visible
+            const clampedX = Math.max(minAllowedX, Math.min(maxAllowedX, targetX));
+            const clampedY = Math.max(minAllowedY, Math.min(maxAllowedY, targetY));
 
-            btnNo.style.left = randomX + 'px';
-            btnNo.style.top = randomY + 'px';
+            btnNo.style.left = clampedX + 'px';
+            btnNo.style.top = clampedY + 'px';
 
             // Make the Yes button grow 8% bigger each hop
             const scaleAmount = 1 + escapeCount * 0.08;
