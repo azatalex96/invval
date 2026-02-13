@@ -114,7 +114,6 @@
             }
         }
 
-        /* Main card */
         .card {
             position: relative;
             z-index: 10;
@@ -131,16 +130,12 @@
                 0 8px 32px rgba(180, 40, 80, 0.15),
                 0 0 80px rgba(255, 50, 100, 0.05),
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            animation: cardEntrance 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             opacity: 0;
-            transform: translateY(30px) scale(0.95);
+            transition: opacity 0.8s ease-out;
         }
 
-        @keyframes cardEntrance {
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        .card.visible {
+            opacity: 1;
         }
 
         .card::before {
@@ -444,79 +439,46 @@
         const mainCard = document.getElementById('mainCard');
         let escapeCount = 0;
 
+        // Reveal card after a short delay (no transforms = clean getBoundingClientRect)
+        setTimeout(() => { mainCard.classList.add('visible'); }, 100);
+
         function escapeNoButton() {
+            // Don't escape until card is visible
+            if (!mainCard.classList.contains('visible')) return;
+
             escapeCount++;
 
-            // 1. Add class to make it fixed/absolute if not already
             if (!btnNo.classList.contains('escaped')) {
                 btnNo.classList.add('escaped');
             }
 
-            // 2. Logic ported from "valentine_fixed.html"
-            // Get dimensions
+            // Get card bounds (now accurate — no CSS transform on card)
             const cardRect = mainCard.getBoundingClientRect();
-            const btnRect = btnNo.getBoundingClientRect();
-            const yesRect = btnYes.getBoundingClientRect();
+            const btnW = btnNo.offsetWidth || 80;
+            const btnH = btnNo.offsetHeight || 44;
+            const pad = 15;
 
-            // Define buffer around Yes button
-            const buffer = 120; // from reference file
+            // Safe area = inside the card with padding
+            const minX = cardRect.left + pad;
+            const maxX = cardRect.right - btnW - pad;
+            const minY = cardRect.top + pad;
+            const maxY = cardRect.bottom - btnH - pad;
 
-            const yesCenterX = yesRect.left + yesRect.width / 2;
-            const yesCenterY = yesRect.top + yesRect.height / 2;
-
-            // Calculate random offset within buffer
-            const offsetX = (Math.random() - 0.5) * 2 * buffer;
-            const offsetY = (Math.random() - 0.5) * 2 * buffer;
-
-            let targetX = yesCenterX + offsetX - btnRect.width / 2;
-            let targetY = yesCenterY + offsetY - btnRect.height / 2;
-
-            // 3. CLAMP TO CARD BOUNDARIES (Stay inside card)
-            const padding = 20; // from reference file
-
-            const cardMinX = cardRect.left + padding;
-            const cardMaxX = cardRect.right - btnRect.width - padding;
-            const cardMinY = cardRect.top + padding;
-            const cardMaxY = cardRect.bottom - btnRect.height - padding;
-
-            // 4. CLAMP TO VISUAL VIEWPORT (Stay visible on Mobile)
-            const vv = window.visualViewport;
-            const vpWidth = vv ? vv.width : window.innerWidth;
-            const vpHeight = vv ? vv.height : window.innerHeight;
-            const vpLeft = vv ? vv.offsetLeft : 0;
-            const vpTop = vv ? vv.offsetTop : 0;
-
-            const vpPadding = 10;
-            const vpMinX = vpLeft + vpPadding;
-            const vpMaxX = vpLeft + vpWidth - btnRect.width - vpPadding;
-            const vpMinY = vpTop + vpPadding;
-            const vpMaxY = vpTop + vpHeight - btnRect.height - vpPadding;
-
-            // 5. INTERSECTION (Must be in Card AND in Viewport)
-            let safeMinX = Math.max(cardMinX, vpMinX);
-            let safeMaxX = Math.min(cardMaxX, vpMaxX);
-            let safeMinY = Math.max(cardMinY, vpMinY);
-            let safeMaxY = Math.min(cardMaxY, vpMaxY);
-
-            // Edge Case: If Intersection is invalid (e.g. Card is off-screen), 
-            // fallback to Viewport constraints
-            if (safeMinX > safeMaxX) {
-                safeMinX = vpMinX;
-                safeMaxX = vpMaxX;
-            }
-            if (safeMinY > safeMaxY) {
-                safeMinY = vpMinY;
-                safeMaxY = vpMaxY;
+            // Pick a random position inside the card
+            let newX, newY;
+            if (maxX > minX && maxY > minY) {
+                newX = minX + Math.random() * (maxX - minX);
+                newY = minY + Math.random() * (maxY - minY);
+            } else {
+                // Fallback for very small screens
+                newX = cardRect.left + pad;
+                newY = cardRect.top + pad;
             }
 
-            // Apply clamps
-            const clampedX = Math.max(safeMinX, Math.min(safeMaxX, targetX));
-            const clampedY = Math.max(safeMinY, Math.min(safeMaxY, targetY));
+            btnNo.style.left = newX + 'px';
+            btnNo.style.top = newY + 'px';
 
-            btnNo.style.left = clampedX + 'px';
-            btnNo.style.top = clampedY + 'px';
-
-            // Make the Yes button grow 8% bigger each hop
+            // Grow the Yes button 8% per hop
             const scaleAmount = 1 + escapeCount * 0.08;
             btnYes.style.setProperty('--btn-scale', scaleAmount);
         }
