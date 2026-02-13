@@ -474,14 +474,44 @@
             // 3. CLAMP TO CARD BOUNDARIES (Stay inside card)
             const padding = 20; // from reference file
 
-            const minX = cardRect.left + padding;
-            const maxX = cardRect.right - btnRect.width - padding;
-            const minY = cardRect.top + padding;
-            const maxY = cardRect.bottom - btnRect.height - padding;
+            const cardMinX = cardRect.left + padding;
+            const cardMaxX = cardRect.right - btnRect.width - padding;
+            const cardMinY = cardRect.top + padding;
+            const cardMaxY = cardRect.bottom - btnRect.height - padding;
+
+            // 4. CLAMP TO VISUAL VIEWPORT (Stay visible on Mobile)
+            const vv = window.visualViewport;
+            const vpWidth = vv ? vv.width : window.innerWidth;
+            const vpHeight = vv ? vv.height : window.innerHeight;
+            const vpLeft = vv ? vv.offsetLeft : 0;
+            const vpTop = vv ? vv.offsetTop : 0;
+
+            const vpPadding = 10;
+            const vpMinX = vpLeft + vpPadding;
+            const vpMaxX = vpLeft + vpWidth - btnRect.width - vpPadding;
+            const vpMinY = vpTop + vpPadding;
+            const vpMaxY = vpTop + vpHeight - btnRect.height - vpPadding;
+
+            // 5. INTERSECTION (Must be in Card AND in Viewport)
+            let safeMinX = Math.max(cardMinX, vpMinX);
+            let safeMaxX = Math.min(cardMaxX, vpMaxX);
+            let safeMinY = Math.max(cardMinY, vpMinY);
+            let safeMaxY = Math.min(cardMaxY, vpMaxY);
+
+            // Edge Case: If Intersection is invalid (e.g. Card is off-screen), 
+            // fallback to Viewport constraints
+            if (safeMinX > safeMaxX) {
+                safeMinX = vpMinX;
+                safeMaxX = vpMaxX;
+            }
+            if (safeMinY > safeMaxY) {
+                safeMinY = vpMinY;
+                safeMaxY = vpMaxY;
+            }
 
             // Apply clamps
-            const clampedX = Math.max(minX, Math.min(maxX, targetX));
-            const clampedY = Math.max(minY, Math.min(maxY, targetY));
+            const clampedX = Math.max(safeMinX, Math.min(safeMaxX, targetX));
+            const clampedY = Math.max(safeMinY, Math.min(safeMaxY, targetY));
 
             btnNo.style.left = clampedX + 'px';
             btnNo.style.top = clampedY + 'px';
