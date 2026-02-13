@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Will You Be My Valentine? 💝</title>
     <meta name="description" content="A special Valentine's Day invitation just for you">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -28,7 +31,7 @@
         .bg-gradient {
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse at 20% 50%, rgba(120, 20, 60, 0.4) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 20%, rgba(180, 40, 80, 0.3) 0%, transparent 50%),
                 radial-gradient(ellipse at 50% 80%, rgba(100, 10, 50, 0.3) 0%, transparent 50%),
@@ -37,9 +40,17 @@
         }
 
         @keyframes gradientShift {
-            0% { opacity: 1; }
-            50% { opacity: 0.85; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.85;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* Floating hearts background */
@@ -63,12 +74,15 @@
                 transform: translateY(100vh) rotate(0deg) scale(0.5);
                 opacity: 0;
             }
+
             10% {
                 opacity: 0.6;
             }
+
             90% {
                 opacity: 0.3;
             }
+
             100% {
                 transform: translateY(-10vh) rotate(360deg) scale(1.2);
                 opacity: 0;
@@ -87,8 +101,17 @@
         }
 
         @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         /* Main card */
@@ -104,7 +127,7 @@
             text-align: center;
             max-width: 520px;
             width: 90%;
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(180, 40, 80, 0.15),
                 0 0 80px rgba(255, 50, 100, 0.05),
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -142,10 +165,23 @@
         }
 
         @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            15% { transform: scale(1.15); }
-            30% { transform: scale(1); }
-            45% { transform: scale(1.1); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            15% {
+                transform: scale(1.15);
+            }
+
+            30% {
+                transform: scale(1);
+            }
+
+            45% {
+                transform: scale(1.1);
+            }
         }
 
         h1 {
@@ -194,20 +230,27 @@
             background: linear-gradient(135deg, #ff3366, #ff6b8a, #ff3366);
             background-size: 200% 100%;
             color: white;
-            box-shadow: 
+            box-shadow:
                 0 4px 15px rgba(255, 51, 102, 0.4),
                 0 0 30px rgba(255, 51, 102, 0.1);
             animation: shimmer 3s ease-in-out infinite;
         }
 
         @keyframes shimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .btn-yes:hover {
             transform: scale(1.08);
-            box-shadow: 
+            box-shadow:
                 0 6px 25px rgba(255, 51, 102, 0.5),
                 0 0 50px rgba(255, 51, 102, 0.2);
         }
@@ -254,6 +297,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -277,7 +321,7 @@
             max-width: 460px;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.3),
                 0 0 60px rgba(255, 50, 100, 0.1);
             border: 1px solid rgba(255, 100, 130, 0.15);
@@ -304,9 +348,11 @@
                 padding: 2rem 1.5rem;
                 border-radius: 20px;
             }
+
             h1 {
                 font-size: 2.2rem;
             }
+
             .btn {
                 padding: 12px 32px;
                 font-size: 1rem;
@@ -314,6 +360,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="bg-gradient"></div>
 
@@ -401,11 +448,15 @@
 
         function generateEscapePositions() {
             escapePositions = [];
-            const pad = 80; // px padding from edges
+            const btnWidth = 120;
+            const btnHeight = 50;
+            const pad = 20; // px padding from viewport edges
+            const maxX = window.innerWidth - btnWidth - pad;
+            const maxY = window.innerHeight - btnHeight - pad;
             for (let i = 0; i < TOTAL_ESCAPE_POSITIONS; i++) {
                 escapePositions.push({
-                    x: pad + Math.random() * (window.innerWidth - pad * 2 - 120),
-                    y: pad + Math.random() * (window.innerHeight - pad * 2 - 50),
+                    x: Math.max(pad, Math.min(maxX, pad + Math.random() * (maxX - pad))),
+                    y: Math.max(pad, Math.min(maxY, pad + Math.random() * (maxY - pad))),
                 });
             }
             // Shuffle using Fisher-Yates
@@ -549,4 +600,5 @@
         }
     </script>
 </body>
+
 </html>
